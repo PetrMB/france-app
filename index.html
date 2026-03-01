@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Francie pro Kiki - Zkoušení</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
+    header {
+      background: linear-gradient(45deg, #2c3e50, #3498db);
+      color: white;
+      padding: 30px 40px;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+    header p {
+      opacity: 0.9;
+      font-size: 1.1rem;
+    }
+    .game {
+      padding: 40px;
+    }
+    .score-board {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 30px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+    .map-container {
+      margin-bottom: 30px;
+      padding: 20px;
+      background: #f0f4f8;
+      border-radius: 12px;
+    }
+    .map-panel {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+    }
+    .category-title {
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #2c3e50;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .item {
+      position: relative;
+      padding: 20px;
+      text-align: center;
+      background: white;
+      border-radius: 8px;
+      border: 2px solid #e0e7ef;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    .item:hover {
+      border-color: #3498db;
+      background: #f8f9fa;
+    }
+    .item.correct {
+      background: #d4edda;
+      border-color: #28a745;
+      color: #155724;
+    }
+    .item.wrong {
+      background: #f8d7da;
+      border-color: #dc3545;
+      color: #721c24;
+    }
+    .item .emoji {
+      font-size: 2.5rem;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .item .hidden {
+      opacity: 0;
+    }
+    .feedback {
+      text-align: center;
+      padding: 20px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+    .feedback.success {
+      color: #28a745;
+    }
+    .feedback.error {
+      color: #dc3545;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      padding: 12px 24px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: bold;
+    }
+    .btn-primary {
+      background: #3498db;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #2980b9;
+    }
+    .btn-secondary {
+      background: #95a5a6;
+      color: white;
+    }
+    .btn-secondary:hover {
+      background: #7f8c8d;
+    }
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+    .btn-success:hover {
+      background: #218838;
+    }
+    .game-over {
+      text-align: center;
+      padding: 60px 40px;
+    }
+    .game-over h2 {
+      font-size: 2.5rem;
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+    .game-over .score {
+      font-size: 4rem;
+      font-weight: bold;
+      color: #3498db;
+      margin-bottom: 30px;
+    }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🇫🇷 Francie pro Kiki</h1>
+      <p>Učíme se pohoří, města a řeky Francie</p>
+    </header>
+    
+    <div id="game" class="game">
+      <div class="score-board">
+        <span>🏆 Skóre: <span id="score">0</span></span>
+        <span>🎯 Úroveň: <span id="level">1</span></span>
+      </div>
+      
+      <div id="question-section">
+        <div id="feedback" class="feedback"></div>
+        
+        <div class="map-container">
+          <div class="category-title">Zvol kategorii:</div>
+          <div class="map-panel">
+            <div class="item" onclick="selectCategory('mountains')">
+              <span class="emoji">⛰️</span>
+              <strong>Pohoří</strong>
+            </div>
+            <div class="item" onclick="selectCategory('cities')">
+              <span class="emoji">🏙️</span>
+              <strong>Města</strong>
+            </div>
+            <div class="item" onclick="selectCategory('rivers')">
+              <span class="emoji">🌊</span>
+              <strong>Řeky</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div id="quiz-section" class="hidden">
+        <div class="map-container">
+          <div class="category-title" id="category-title">Které je to?</div>
+          <div class="map-panel" id="options-panel">
+            <div class="item" onclick="checkAnswer(this, true)">
+              <span class="emoji" id="option1-emoji">Paris</span>
+              <strong id="option1-name">Paris</strong>
+            </div>
+            <div class="item" onclick="checkAnswer(this, false)">
+              <span class="emoji" id="option2-emoji">Berlin</span>
+              <strong id="option2-name">Berlin</strong>
+            </div>
+            <div class="item" onclick="checkAnswer(this, false)">
+              <span class="emoji" id="option3-emoji">Madrid</span>
+              <strong id="option3-name">Madrid</strong>
+            </div>
+          </div>
+        </div>
+        
+        <div class="controls">
+          <button class="btn btn-secondary" onclick="showQuestion()">❌ Další otázka</button>
+          <button class="btn btn-primary" onclick="showMenu()">🏠 Do menu</button>
+        </div>
+      </div>
+    </div>
+    
+    <div id="game-over" class="game-over hidden">
+      <h2>🎉 Výborně, Kiki!</h2>
+      <p>Tvé skóre:</p>
+      <div class="score" id="final-score">0</div>
+      <p>Gratuluji! Zkoušíš skvěle! 🌟</p>
+      <div class="controls">
+        <button class="btn btn-success" onclick="restartGame()">🔄 Hrát znovu</button>
+        <button class="btn btn-secondary" onclick="showMenu()">🏠 Menu</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Data
+    const data = {
+      mountains: [
+        { name: 'Mont Blanc', emoji: '🏔️' },
+        { name: 'Massif des Vosges', emoji: '⛰️' },
+        { name: 'Massif Central', emoji: '🌋' },
+        { name: 'Jura', emoji: '🏞️' },
+        { name: 'Alpy', emoji: '雪山' }
+      ],
+      cities: [
+        { name: 'Paříž', emoji: '🗼' },
+        { name: 'Lyon', emoji: '🏛️' },
+        { name: 'Marseille', emoji: 'porto' },
+        { name: 'Nice', emoji: '🏖️' },
+        { name: 'Bordeaux', emoji: '🍷' }
+      ],
+      rivers: [
+        { name: ' Seznam řek', emoji: '🌊' },
+        { name: 'Luara', emoji: '🌊' },
+        { name: 'Sena', emoji: '🌉' },
+        { name: 'Rýn', emoji: 'shipping' },
+        { name: 'Dunaj', emoji: '🌊' }
+      ]
+    };
+    
+    let currentCategory = null;
+    let score = 0;
+    let level = 1;
+    let correctAnswer = null;
+    
+    function selectCategory(category) {
+      currentCategory = category;
+      document.getElementById('question-section').classList.add('hidden');
+      document.getElementById('quiz-section').classList.remove('hidden');
+      document.getElementById('category-title').textContent = `Vyber správné ${category === 'mountains' ? 'pohoří' : category === 'cities' ? 'město' : 'řeku'} ve Francii:`;
+      generateQuestion();
+    }
+    
+    function showMenu() {
+      document.getElementById('quiz-section').classList.add('hidden');
+      document.getElementById('game-over').classList.add('hidden');
+      document.getElementById('question-section').classList.remove('hidden');
+      document.getElementById('feedback').textContent = '';
+      document.getElementById('feedback').className = 'feedback';
+    }
+    
+    function showQuestion() {
+      generateQuestion();
+      document.getElementById('feedback').textContent = '';
+      document.getElementById('feedback').className = 'feedback';
+    }
+    
+    function generateQuestion() {
+      const categoryData = data[currentCategory];
+      const correct = categoryData[Math.floor(Math.random() * categoryData.length)];
+      correctAnswer = correct;
+      
+      // Update options
+      const options = [correct];
+      while (options.length < 3) {
+        const randomCategory = currentCategory;
+        const randomItem = data[randomCategory][Math.floor(Math.random() * data[randomCategory].length)];
+        if (!options.find(o => o.name === randomItem.name)) {
+          options.push(randomItem);
+        }
+      }
+      
+      // Shuffle options
+      options.sort(() => Math.random() - 0.5);
+      
+      document.getElementById('option1-emoji').textContent = options[0].emoji;
+      document.getElementById('option1-name').textContent = options[0].name;
+      document.getElementById('option2-emoji').textContent = options[1].emoji;
+      document.getElementById('option2-name').textContent = options[1].name;
+      document.getElementById('option3-emoji').textContent = options[2].emoji;
+      document.getElementById('option3-name').textContent = options[2].name;
+      
+      // Reset classes
+      document.querySelectorAll('.item').forEach(item => {
+        item.classList.remove('correct', 'wrong');
+        item.querySelector('strong').style.fontWeight = 'bold';
+      });
+    }
+    
+    function checkAnswer(element, isCorrect) {
+      if (element.classList.contains('correct') || element.classList.contains('wrong')) return;
+      
+      if (isCorrect) {
+        element.classList.add('correct');
+        document.getElementById('feedback').textContent = '🎉 Správně! Výborně! 🌟';
+        document.getElementById('feedback').classList.add('success');
+        score += 10;
+        level = Math.floor(score / 30) + 1;
+      } else {
+        element.classList.add('wrong');
+        document.getElementById('feedback').textContent = '❌ Toto není správně. Zkus to znovu!';
+        document.getElementById('feedback').classList.add('error');
+        score = Math.max(0, score - 5);
+      }
+      
+      document.getElementById('score').textContent = score;
+      document.getElementById('level').textContent = level;
+      
+      // Highlight correct answer
+      if (!isCorrect) {
+        const items = document.querySelectorAll('.item');
+        items.forEach((item, idx) => {
+          if ([1,2,3][idx] === correctAnswer.name) {
+            item.classList.add('correct');
+          }
+        });
+      }
+      
+      // Auto advance
+      setTimeout(() => {
+        if (score >= 100) {
+          showGameOver();
+        } else {
+          showQuestion();
+        }
+      }, 2000);
+    }
+    
+    function showGameOver() {
+      document.getElementById('quiz-section').classList.add('hidden');
+      document.getElementById('game-over').classList.remove('hidden');
+      document.getElementById('final-score').textContent = score;
+    }
+    
+    function restartGame() {
+      score = 0;
+      level = 1;
+      document.getElementById('score').textContent = score;
+      document.getElementById('level').textContent = level;
+      document.getElementById('game-over').classList.add('hidden');
+      document.getElementById('question-section').classList.remove('hidden');
+    }
+    
+    // Initialize
+    document.getElementById('score').textContent = score;
+    document.getElementById('level').textContent = level;
+  </script>
+</body>
+</html>
